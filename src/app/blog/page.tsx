@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { fetchBlogPosts, transformToBlogCard, extractAllTags } from '@/lib/blog-api';
 import { BlogPageClient } from '@/components/blog/BlogPageClient';
-import { Result } from 'antd';
+import { BlogErrorState } from '@/components/blog/BlogErrorState';
 
 export const metadata: Metadata = {
   title: 'Blog | My Learning Journey',
@@ -17,13 +17,7 @@ export default async function BlogIndexPage() {
     posts = rawPosts.map(transformToBlogCard);
     allTags = extractAllTags(rawPosts);
   } catch {
-    return (
-      <Result
-        status="error"
-        title="Failed to Load Blog"
-        subTitle="Could not fetch blog posts from Notion. Please check your configuration."
-      />
-    );
+    return <BlogErrorState />;
   }
 
   return <BlogPageClient initialPosts={posts} allTags={allTags} />;

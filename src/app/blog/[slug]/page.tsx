@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { fetchFullBlogPost } from '@/lib/blog-api';
 import { PostContent } from '@/components/blog/PostContent';
-import { Result, Button } from 'antd';
-import Link from 'next/link';
+import { BlogPostNotFound } from '@/components/blog/BlogPostNotFound';
+import { BlogPostError } from '@/components/blog/BlogPostError';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -10,7 +10,12 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await fetchFullBlogPost(slug);
+  let post;
+  try {
+    post = await fetchFullBlogPost(slug);
+  } catch {
+    return { title: 'Post Error | My Learning Journey' };
+  }
 
   if (!post) {
     return { title: 'Post Not Found | My Learning Journey' };
@@ -29,33 +34,11 @@ export default async function BlogPostPage({ params }: Props) {
   try {
     post = await fetchFullBlogPost(slug);
   } catch {
-    return (
-      <Result
-        status="error"
-        title="Failed to Load Post"
-        subTitle="Could not fetch blog post from Notion."
-        extra={
-          <Link href="/blog">
-            <Button type="primary">Back to Blog</Button>
-          </Link>
-        }
-      />
-    );
+    return <BlogPostError />;
   }
 
   if (!post) {
-    return (
-      <Result
-        status="404"
-        title="Post Not Found"
-        subTitle="The blog post you're looking for doesn't exist."
-        extra={
-          <Link href="/blog">
-            <Button type="primary">Back to Blog</Button>
-          </Link>
-        }
-      />
-    );
+    return <BlogPostNotFound />;
   }
 
   return <PostContent post={post} />;

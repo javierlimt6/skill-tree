@@ -1,3 +1,5 @@
+'use client';
+
 import { FC } from 'react';
 import { Card, Statistic, Row, Col, Progress } from 'antd';
 import {

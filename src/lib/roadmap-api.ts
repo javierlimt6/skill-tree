@@ -12,6 +12,7 @@ import type { RoadmapNodeRaw } from '@/types/notion.types';
 import type { RoadmapStats } from '@/types/roadmap.types';
 import type { Node, Edge } from '@xyflow/react';
 import type { LearningNodeData } from '@/types/roadmap.types';
+import fallbackRoadmap from '@/data/fallback-roadmap.json';
 
 /* ── Status → color mapping ── */
 const statusColorMap: Record<string, string> = {
@@ -21,31 +22,36 @@ const statusColorMap: Record<string, string> = {
   'Not Started': '#d9d9d9',
 };
 
-/* ── Fetch all roadmap nodes from Notion ── */
+/* ── Fetch all roadmap nodes from Notion (with fallback) ── */
 export async function fetchRoadmapNodes(): Promise<RoadmapNodeRaw[]> {
-  const response = await notion.databases.query({
-    database_id: ROADMAP_DB_ID,
-    sorts: [{ property: 'Order', direction: 'ascending' }],
-  });
+  try {
+    const response = await notion.dataSources.query({
+      data_source_id: ROADMAP_DB_ID,
+      sorts: [{ property: 'Order', direction: 'ascending' }],
+    });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return response.results.map((page: any) => ({
-    id: page.id,
-    nodeId: getPlainText(page.properties['Node ID']?.rich_text),
-    title: getPlainText(page.properties.Title?.title),
-    parentIds: getRelationIds(page.properties.Parent?.relation),
-    status: getSelect(page.properties.Status?.select) as RoadmapNodeRaw['status'],
-    category: getMultiSelect(page.properties.Category?.multi_select),
-    priority: getSelect(page.properties.Priority?.select) as RoadmapNodeRaw['priority'],
-    description: getPlainText(page.properties.Description?.rich_text),
-    resources: page.properties.Resources?.url || null,
-    startDate: getDate(page.properties['Start Date']?.date),
-    endDate: getDate(page.properties['End Date']?.date),
-    relatedPostIds: getRelationIds(page.properties['Related Posts']?.relation),
-    positionX: page.properties['Position X']?.number || 0,
-    positionY: page.properties['Position Y']?.number || 0,
-    order: page.properties.Order?.number || 0,
-  }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.results.map((page: any) => ({
+      id: page.id,
+      nodeId: getPlainText(page.properties['Node ID']?.rich_text),
+      title: getPlainText(page.properties.Title?.title),
+      parentIds: getRelationIds(page.properties.Parent?.relation),
+      status: getSelect(page.properties.Status?.select) as RoadmapNodeRaw['status'],
+      category: getMultiSelect(page.properties.Category?.multi_select),
+      priority: getSelect(page.properties.Priority?.select) as RoadmapNodeRaw['priority'],
+      description: getPlainText(page.properties.Description?.rich_text),
+      resources: page.properties.Resources?.url || null,
+      startDate: getDate(page.properties['Start Date']?.date),
+      endDate: getDate(page.properties['End Date']?.date),
+      relatedPostIds: getRelationIds(page.properties['Related Posts']?.relation),
+      positionX: page.properties['Position X']?.number || 0,
+      positionY: page.properties['Position Y']?.number || 0,
+      order: page.properties.Order?.number || 0,
+    }));
+  } catch {
+    console.warn('Notion roadmap fetch failed, using fallback data');
+    return fallbackRoadmap as RoadmapNodeRaw[];
+  }
 }
 
 /* ── Transform to ReactFlow nodes ── */

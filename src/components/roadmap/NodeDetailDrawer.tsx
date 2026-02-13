@@ -33,7 +33,7 @@ export const NodeDetailDrawer: FC<Props> = ({ node, open, onClose }) => {
   const data = node.data as unknown as LearningNodeData;
 
   return (
-    <Drawer title={data.title} open={open} onClose={onClose} width={500}>
+    <Drawer title={data.title} open={open} onClose={onClose} size="large">
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* Status */}
         <Descriptions column={1} size="small">
